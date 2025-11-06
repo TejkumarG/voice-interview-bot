@@ -4,6 +4,9 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Voice Interview Bot",
   description: "AI-powered voice interview assistant with document-based knowledge",
+  icons: {
+    icon: '/favicon.svg',
+  },
 };
 
 export default function RootLayout({

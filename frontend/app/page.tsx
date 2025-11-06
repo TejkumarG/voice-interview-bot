@@ -216,11 +216,15 @@ export default function Home() {
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/50">
-                <User className="w-7 h-7 text-white" />
+              <div className="relative w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-purple-500/50">
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-purple-400 to-pink-400 animate-pulse opacity-50"></div>
+                <Mic className="w-7 h-7 text-white relative z-10" />
               </div>
               <div>
-                <h1 className="text-3xl font-bold text-white">Voice Interview Bot</h1>
+                <h1 className="text-3xl font-bold text-white flex items-center gap-2">
+                  Voice Interview Bot
+                  <Sparkles className="w-6 h-6 text-yellow-400 animate-pulse" />
+                </h1>
                 <p className="text-sm text-purple-300">100x Assessment - AI-Powered Interview</p>
               </div>
             </div>
