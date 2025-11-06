@@ -1,0 +1,35 @@
+Greetings!
+
+Congrats on being selected to interview with 100x!
+
+In this job, we’re looking for an ideal applicant to become a part of our AI Agent Team. This is a fully remote job. We’re excited to get to know you better. Your interview will be conducted in 4 stages.
+
+Stage 1: At-home Assessment
+Stage 2: Behavioural Interview
+Stage 3: Interview with Manager
+Stage 4: Final Interview with the CEO
+
+You’re now in Stage 1.
+
+Using ChatGPT’s API (or any other free alternative), create a voice bot that can respond to the following questions as YOU would respond to them.
+
+Here’s an example of questions, not an exhaustive list of questions that we will test your bot with.
+
+What should we know about your life story in a few sentences?
+What’s your #1 superpower?
+What are the top 3 areas you’d like to grow in?
+What misconception do your coworkers have about you?
+How do you push your boundaries and limits?
+
+Submission Guidelines:
+Provide a URL of your submission 48 hours of this message. Your submission will be a web app where the chatbot is deployed.
+
+Important:
+Your submission must be universally user-friendly, even for non-technical users. Please ensure:
+✅ A web app or an interactive demo that allows anyone to easily test your voicebot
+✅ A setup that is simple and does not require coding knowledge or complex installations (without any manual entry of API key).
+
+Send your assessment AND resume to bhumika@100x.inc with the subject line:
+"GEN AI: GEN AI ROUND 1 ASSESSMENT (LINKEDIN)"
+
+Good luck! We are looking forward to seeing your output.
