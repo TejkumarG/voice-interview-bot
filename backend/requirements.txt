@@ -1,16 +1,16 @@
 # FastAPI and Server
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
-python-multipart==0.0.6
+fastapi==0.115.0
+uvicorn[standard]==0.32.1
+python-multipart==0.0.12
 
 # AI Services (Lightweight API clients - NO heavy models!)
 openai==1.54.0
-pinecone-client==5.0.1
+pinecone==5.4.2
 
 # Configuration and Validation
-pydantic==2.5.0
-pydantic-settings==2.1.0
-python-dotenv==1.0.0
+pydantic==2.10.3
+pydantic-settings==2.6.1
+python-dotenv==1.0.1
 
 # Total size: ~50MB (all API clients, no ML models!)
 # Perfect for serverless deployment on Render free tier
