@@ -5,7 +5,7 @@ python-multipart==0.0.6
 
 # AI Services (Lightweight API clients - NO heavy models!)
 openai==1.54.0
-pinecone-client==3.0.0
+pinecone-client==5.0.1
 
 # Configuration and Validation
 pydantic==2.5.0
