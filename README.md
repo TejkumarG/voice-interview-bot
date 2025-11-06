@@ -29,7 +29,7 @@ A simple voice-enabled chatbot that answers interview questions as YOU. Built fo
 
 ```mermaid
 flowchart TD
-    A[Frontend<br/>Next.js 14 + React + TypeScript<br/>Vercel] -->|HTTP Requests| B[Backend<br/>FastAPI<br/>Render]
+    A[Frontend<br/>nextjs<br/>Vercel] -->|HTTP Requests| B[Backend<br/>fastapi<br/>Render]
     B -->|AI Requests| C[Groq AI<br/>Free API]
     C -->|Responses| B
     B -->|Responses| A
