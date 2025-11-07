@@ -84,7 +84,7 @@ export default function ChatInterface({ selectedDocId, voiceInput, onVoiceInputP
             </h2>
             <p className="text-gray-600 max-w-md">
               Upload your interview preparation documents and ask questions using voice or text.
-              I'll help you prepare for your interview!
+              I&apos;ll help you prepare for your interview!
             </p>
           </div>
         ) : (
