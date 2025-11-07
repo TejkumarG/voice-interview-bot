@@ -31,16 +31,15 @@ class DocumentHandler:
         Workflow:
             1. Compute file hash (document_id)
             2. Check if document already exists
-            3. If is_interview=True, clear interview flag from all existing docs
-            4. Use filename as title
-            5. Chunk document text
-            6. Generate embeddings
-            7. Store in vector DB with metadata
+            3. Use filename as title
+            4. Chunk document text
+            5. Generate embeddings
+            6. Store in vector DB with metadata
 
         Args:
             text: Document content
             filename: Original filename (without extension)
-            is_interview: Flag to mark as interview document
+            is_interview: Flag to mark as interview document (multiple docs can be interview docs)
 
         Returns:
             Dict with document_id, title, chunks_created
@@ -55,10 +54,6 @@ class DocumentHandler:
         exists = self.vector_repo.check_exists({"document_id": document_id})
         if exists:
             raise ValueError(f"Document already uploaded (ID: {document_id})")
-
-        # If marking as interview, clear interview flag from all existing documents
-        if is_interview:
-            self.vector_repo.clear_interview_flags()
 
         # Use filename as title
         title = filename[:100] if filename else "Untitled"

@@ -49,6 +49,7 @@ export default function Home() {
         tertiaryColor: '#1e293b'
       }
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -136,7 +137,7 @@ export default function Home() {
     if (!messageText.trim() || loading) return;
 
     const isInterviewMode = activeTab === 'interview';
-    const docToUse = isInterviewMode ? undefined : selectedDocId;
+    const docToUse = isInterviewMode ? undefined : selectedDocId ?? undefined;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -724,8 +725,12 @@ export default function Home() {
                     key={doc.document_id}
                     className={`group relative p-3 rounded-xl transition-all ${
                       selectedDocId === doc.document_id
-                        ? 'bg-white/20 border border-white/30'
-                        : 'bg-white/5 border border-white/10 hover:bg-white/10'
+                        ? doc.is_interview
+                          ? 'bg-gradient-to-br from-yellow-500/20 to-amber-500/20 border-2 border-yellow-400/50'
+                          : 'bg-white/20 border border-white/30'
+                        : doc.is_interview
+                          ? 'bg-gradient-to-br from-yellow-500/10 to-amber-500/10 border-2 border-yellow-400/30 hover:border-yellow-400/50'
+                          : 'bg-white/5 border border-white/10 hover:bg-white/10'
                     }`}
                   >
                     <button
@@ -733,13 +738,15 @@ export default function Home() {
                       className="w-full text-left"
                     >
                       <div className="flex items-center gap-2">
-                        <FileText className="w-4 h-4 text-purple-400 flex-shrink-0" />
+                        <FileText className={`w-4 h-4 flex-shrink-0 ${doc.is_interview ? 'text-yellow-400' : 'text-purple-400'}`} />
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-white truncate">
+                          <p className={`text-sm font-medium truncate ${doc.is_interview ? 'text-yellow-100' : 'text-white'}`}>
                             {doc.title}
-                            {doc.is_interview && ' ⭐'}
                           </p>
-                          <p className="text-xs text-purple-300">{doc.total_chunks} chunks</p>
+                          <p className="text-xs text-purple-300 flex items-center gap-1">
+                            {doc.total_chunks} chunks
+                            {doc.is_interview && <span className="text-yellow-400">⭐ Interview</span>}
+                          </p>
                         </div>
                       </div>
                     </button>
