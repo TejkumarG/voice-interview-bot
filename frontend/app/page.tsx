@@ -380,7 +380,8 @@ export default function Home() {
 {`graph TB
     subgraph Frontend["🎨 FRONTEND LAYER"]
         UI([Next.js 14 + React + TypeScript])
-        Voice([Web Speech API])
+        VoiceIn([SpeechRecognition<br/>Speech-to-Text])
+        VoiceOut([SpeechSynthesis<br/>Text-to-Speech])
     end
 
     subgraph Backend["⚙️ BACKEND - CLEAN ARCHITECTURE"]
@@ -417,9 +418,11 @@ export default function Home() {
         Generate[Generate Response]
     end
 
-    UI -.->|Voice Input| Voice
-    Voice -->|Speech to Text| Router
+    UI -.->|Voice Input| VoiceIn
+    VoiceIn -->|Speech to Text| Router
     UI -->|Text Input| Router
+    Router -->|Response Text| VoiceOut
+    VoiceOut -.->|Voice Output| UI
     Router --> Service
     Service --> Handler
     Handler --> Repo
@@ -453,7 +456,7 @@ export default function Home() {
     classDef ingestionStyle fill:#10b981,stroke:#34d399,stroke-width:3px,color:#fff
     classDef retrievalStyle fill:#f59e0b,stroke:#fbbf24,stroke-width:3px,color:#fff
 
-    class UI,Voice frontendStyle
+    class UI,VoiceIn,VoiceOut frontendStyle
     class Router,Service,Handler,Repo backendStyle
     class Embed,LLM aiStyle
     class Pine storageStyle
@@ -557,7 +560,15 @@ export default function Home() {
                   <ul className="space-y-3 text-purple-200">
                     <li className="flex items-start gap-2">
                       <span className="text-purple-400 mt-1">→</span>
-                      <span>Voice input via Web Speech API</span>
+                      <span>Voice I/O: Speech-to-Text + Text-to-Speech</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-purple-400 mt-1">→</span>
+                      <span>Interview Mode: Voice-first UI with controls</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <span className="text-purple-400 mt-1">→</span>
+                      <span>Playground Mode: Text-only testing</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-purple-400 mt-1">→</span>
@@ -565,15 +576,7 @@ export default function Home() {
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-purple-400 mt-1">→</span>
-                      <span>Interview document flagging</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-purple-400 mt-1">→</span>
                       <span>Multi-doc or single-doc search modes</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <span className="text-purple-400 mt-1">→</span>
-                      <span>Real-time streaming responses</span>
                     </li>
                   </ul>
                 </div>
