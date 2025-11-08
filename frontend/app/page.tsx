@@ -883,30 +883,7 @@ export default function Home() {
                 </div>
               )}
 
-              <div className="flex flex-col items-center gap-4 w-full">
-                <div className="flex items-center gap-4">
-                  <button
-                    onClick={handleVoiceRecord}
-                    disabled={loading}
-                    className={`p-6 rounded-full transition-all ${
-                      isRecording
-                        ? 'bg-red-500 recording-pulse shadow-2xl shadow-red-500/50'
-                        : 'bg-gradient-to-br from-purple-500 to-pink-500 hover:shadow-2xl hover:shadow-purple-500/50'
-                    } disabled:opacity-50`}
-                  >
-                    <Mic className="w-8 h-8 text-white" />
-                  </button>
-                  <div className="text-sm text-purple-300">
-                    {isRecording ? 'Listening...' : 'Use voice'}
-                  </div>
-                </div>
-
-                <div className="w-full flex items-center gap-2 text-purple-300 text-sm">
-                  <div className="flex-1 border-t border-purple-400/30"></div>
-                  <span>or type</span>
-                  <div className="flex-1 border-t border-purple-400/30"></div>
-                </div>
-
+              <div className="mt-6">
                 <form onSubmit={handleTextSubmit} className="w-full flex gap-2">
                   <input
                     type="text"
