@@ -215,11 +215,13 @@ export default function Home() {
 
       setMessages((prev) => [...prev, assistantMessage]);
 
-      // Update current sources and speak the response
+      // Update current sources and speak the response (only in Interview Mode)
       if (response.sources && response.sources.length > 0) {
         setCurrentSources(response.sources);
       }
-      speakText(response.response);
+      if (isInterviewMode) {
+        speakText(response.response);
+      }
     } catch (err) {
       console.error('Chat error:', err);
 
@@ -229,7 +231,9 @@ export default function Home() {
         content: 'Sorry, there was an error processing your message. Please try again.',
       };
       setMessages((prev) => [...prev, errorMessage]);
-      speakText('Sorry, there was an error processing your message. Please try again.');
+      if (isInterviewMode) {
+        speakText('Sorry, there was an error processing your message. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
