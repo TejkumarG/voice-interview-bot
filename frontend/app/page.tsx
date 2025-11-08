@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Mic, Sparkles, Loader2, User, MessageCircle, Upload, FileText, Beaker, Network, Trash2, BookOpen, Send, X } from 'lucide-react';
+import { Mic, Sparkles, Loader2, User, MessageCircle, Upload, FileText, Beaker, Network, Trash2, BookOpen, Send, X, Pause, Play, Square, MessageSquare } from 'lucide-react';
 import { api, Document, SourceInfo } from '@/lib/api';
 import mermaid from 'mermaid';
 
@@ -32,11 +32,18 @@ export default function Home() {
   const [deleting, setDeleting] = useState<string | null>(null);
   const [textInput, setTextInput] = useState('');
   const [selectedSources, setSelectedSources] = useState<SourceInfo[] | null>(null);
+  const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const [showCaptions, setShowCaptions] = useState(false);
+  const [currentSources, setCurrentSources] = useState<SourceInfo[]>([]);
   const mermaidRef = useRef<HTMLDivElement>(null);
+  const synthRef = useRef<SpeechSynthesis | null>(null);
+  const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   useEffect(() => {
     loadDocuments();
     initSpeechRecognition();
+    initSpeechSynthesis();
     mermaid.initialize({
       startOnLoad: true,
       theme: 'dark',
@@ -90,6 +97,54 @@ export default function Home() {
       rec.onerror = () => setIsRecording(false);
 
       setRecognition(rec);
+    }
+  };
+
+  const initSpeechSynthesis = () => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      synthRef.current = window.speechSynthesis;
+    }
+  };
+
+  const speakText = (text: string) => {
+    if (!synthRef.current) return;
+
+    // Stop any ongoing speech
+    synthRef.current.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-US';
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
+
+    utterance.onstart = () => setIsSpeaking(true);
+    utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => setIsSpeaking(false);
+
+    utteranceRef.current = utterance;
+    synthRef.current.speak(utterance);
+  };
+
+  const pauseSpeech = () => {
+    if (synthRef.current && synthRef.current.speaking) {
+      synthRef.current.pause();
+      setIsPaused(true);
+    }
+  };
+
+  const resumeSpeech = () => {
+    if (synthRef.current) {
+      synthRef.current.resume();
+      setIsPaused(false);
+    }
+  };
+
+  const stopSpeech = () => {
+    if (synthRef.current) {
+      synthRef.current.cancel();
+      setIsSpeaking(false);
+      setIsPaused(false);
     }
   };
 
@@ -159,6 +214,12 @@ export default function Home() {
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
+
+      // Update current sources and speak the response
+      if (response.sources && response.sources.length > 0) {
+        setCurrentSources(response.sources);
+      }
+      speakText(response.response);
     } catch (err) {
       console.error('Chat error:', err);
 
@@ -168,6 +229,7 @@ export default function Home() {
         content: 'Sorry, there was an error processing your message. Please try again.',
       };
       setMessages((prev) => [...prev, errorMessage]);
+      speakText('Sorry, there was an error processing your message. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -526,126 +588,92 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Chat */}
+              {/* Voice-First Interface */}
               <div className="flex-1 bg-white/5 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 flex flex-col overflow-hidden shadow-2xl">
-                {messages.length === 0 ? (
-                  <div className="flex-1 flex items-center justify-center">
-                    <div className="text-center max-w-xl">
-                      <div className="w-24 h-24 mx-auto mb-6 rounded-3xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center shadow-2xl shadow-purple-500/50 animate-pulse-slow">
-                        <Sparkles className="w-12 h-12 text-white" />
-                      </div>
-                      <h2 className="text-4xl font-bold text-white mb-4">Ready to Begin</h2>
-                      <p className="text-lg text-purple-200 mb-4">
-                        Click the microphone and ask interview questions
-                      </p>
+                <div className="flex-1 flex flex-col items-center justify-center">
+                  <div className="text-center max-w-xl w-full space-y-8">
+                    {/* Status Display */}
+                    <div>
+                      <h2 className="text-3xl font-bold text-white mb-6">
+                        {isRecording ? 'Listening...' : isSpeaking ? 'Bot is speaking...' : loading ? 'Thinking...' : 'Ready'}
+                      </h2>
                       {!interviewDoc && documents.length > 0 ? (
-                        <p className="text-sm text-yellow-400">
+                        <p className="text-sm text-yellow-400 mb-6">
                           No interview doc - searching all {documents.length} documents
                         </p>
                       ) : !interviewDoc && (
-                        <p className="text-sm text-purple-400">
+                        <p className="text-sm text-purple-400 mb-6">
                           Upload documents in Playground to get started
                         </p>
                       )}
                     </div>
-                  </div>
-                ) : (
-                  <div className="flex-1 overflow-y-auto space-y-4 mb-4">
-                    {messages.map((msg) => (
-                      <div
-                        key={msg.id}
-                        className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} animate-fadeIn`}
+
+                    {/* Voice Controls */}
+                    <div className="flex items-center justify-center gap-4">
+                      <button
+                        onClick={handleVoiceRecord}
+                        disabled={loading || isSpeaking}
+                        className={`p-12 rounded-full transition-all transform ${
+                          isRecording
+                            ? 'bg-red-500 recording-pulse shadow-2xl shadow-red-500/50 scale-110'
+                            : 'bg-gradient-to-br from-purple-500 to-pink-500 hover:shadow-2xl hover:shadow-purple-500/50 hover:scale-105'
+                        } disabled:opacity-50 disabled:cursor-not-allowed`}
                       >
-                        <div
-                          className={`max-w-[80%] rounded-2xl px-6 py-4 ${
-                            msg.role === 'user'
-                              ? 'bg-white/10 backdrop-blur-xl border border-white/20 text-white'
-                              : 'bg-gradient-to-br from-purple-500 to-pink-500 text-white shadow-lg shadow-purple-500/30'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2 mb-2 text-xs text-purple-200">
-                            {msg.role === 'user' ? <MessageCircle className="w-3 h-3" /> : <User className="w-3 h-3" />}
-                            <span>{msg.role === 'user' ? 'Interviewer' : 'Candidate'}</span>
-                          </div>
-                          <p className="leading-relaxed whitespace-pre-wrap">{msg.content}</p>
-                          {msg.sources && msg.sources.length > 0 && (
-                            <div className="mt-3 pt-3 border-t border-white/20">
-                              <button
-                                onClick={() => setSelectedSources(msg.sources || [])}
-                                className="flex items-center gap-1 text-xs text-white/70 mb-1 hover:text-white transition-colors cursor-pointer"
-                              >
-                                <BookOpen className="w-3 h-3" />
-                                <span>Sources: {msg.sources.length} doc{msg.sources.length > 1 ? 's' : ''}</span>
-                                <span className="text-[10px] opacity-50">(click to view)</span>
-                              </button>
-                              <div className="flex flex-wrap gap-1">
-                                {msg.sources.map((source, idx) => (
-                                  <button
-                                    key={idx}
-                                    onClick={() => setSelectedSources(msg.sources || [])}
-                                    className="text-xs px-2 py-0.5 bg-white/10 hover:bg-white/20 rounded-full transition-colors cursor-pointer"
-                                    title="Click to view source details"
-                                  >
-                                    {source.title.length > 20 ? source.title.substring(0, 20) + '...' : source.title}
-                                  </button>
-                                ))}
-                              </div>
-                            </div>
-                          )}
+                        <Mic className="w-16 h-16 text-white" />
+                      </button>
+
+                      {isSpeaking && (
+                        <>
+                          <button
+                            onClick={isPaused ? resumeSpeech : pauseSpeech}
+                            className="p-6 rounded-full bg-white/10 hover:bg-white/20 border border-white/30 transition-all hover:scale-105"
+                            title={isPaused ? "Resume" : "Pause"}
+                          >
+                            {isPaused ? <Play className="w-6 h-6 text-white" /> : <Pause className="w-6 h-6 text-white" />}
+                          </button>
+                          <button
+                            onClick={stopSpeech}
+                            className="p-6 rounded-full bg-red-500/20 hover:bg-red-500/30 border border-red-500/50 transition-all hover:scale-105"
+                            title="Stop"
+                          >
+                            <Square className="w-6 h-6 text-red-300" />
+                          </button>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Sources Display */}
+                    {currentSources.length > 0 && (
+                      <div className="bg-white/5 border border-white/10 rounded-2xl p-4">
+                        <div className="flex items-center gap-2 mb-3 text-sm text-purple-300">
+                          <BookOpen className="w-4 h-4" />
+                          <span>Sources: {currentSources.length} document{currentSources.length > 1 ? 's' : ''} used</span>
                         </div>
-                      </div>
-                    ))}
-                    {loading && (
-                      <div className="flex justify-start animate-fadeIn">
-                        <div className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl px-6 py-4 shadow-lg">
-                          <Loader2 className="w-5 h-5 text-white animate-spin" />
+                        <div className="flex flex-wrap gap-2">
+                          {currentSources.map((source, idx) => (
+                            <button
+                              key={idx}
+                              onClick={() => setSelectedSources(currentSources)}
+                              className="text-xs px-3 py-1.5 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg transition-colors"
+                            >
+                              {source.title.length > 25 ? source.title.substring(0, 25) + '...' : source.title}
+                            </button>
+                          ))}
                         </div>
                       </div>
                     )}
-                  </div>
-                )}
 
-                <div className="flex flex-col items-center gap-4 w-full max-w-2xl mx-auto">
-                  <div className="flex items-center gap-4">
-                    <button
-                      onClick={handleVoiceRecord}
-                      disabled={loading}
-                      className={`p-6 rounded-full transition-all transform ${
-                        isRecording
-                          ? 'bg-red-500 recording-pulse shadow-2xl shadow-red-500/50 scale-110'
-                          : 'bg-gradient-to-br from-purple-500 to-pink-500 hover:shadow-2xl hover:shadow-purple-500/50 hover:scale-105'
-                      } disabled:opacity-50`}
-                    >
-                      <Mic className="w-8 h-8 text-white" />
-                    </button>
-                    <div className="text-sm text-purple-300">
-                      {isRecording ? 'Listening...' : 'Use voice'}
-                    </div>
+                    {/* View Captions Button */}
+                    {messages.length > 0 && (
+                      <button
+                        onClick={() => setShowCaptions(true)}
+                        className="px-6 py-3 bg-white/10 hover:bg-white/20 border border-white/30 rounded-xl text-white font-medium transition-all flex items-center gap-2 mx-auto"
+                      >
+                        <MessageSquare className="w-5 h-5" />
+                        View Conversation Transcript
+                      </button>
+                    )}
                   </div>
-
-                  <div className="w-full flex items-center gap-2 text-purple-300 text-sm">
-                    <div className="flex-1 border-t border-purple-400/30"></div>
-                    <span>or type</span>
-                    <div className="flex-1 border-t border-purple-400/30"></div>
-                  </div>
-
-                  <form onSubmit={handleTextSubmit} className="w-full flex gap-2">
-                    <input
-                      type="text"
-                      value={textInput}
-                      onChange={(e) => setTextInput(e.target.value)}
-                      disabled={loading}
-                      placeholder="Type your question here..."
-                      className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-purple-300/50 focus:outline-none focus:border-purple-400/50 transition-all disabled:opacity-50"
-                    />
-                    <button
-                      type="submit"
-                      disabled={loading || !textInput.trim()}
-                      className="px-6 py-3 bg-gradient-to-br from-purple-500 to-pink-500 hover:shadow-xl hover:shadow-purple-500/50 rounded-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      <Send className="w-5 h-5 text-white" />
-                    </button>
-                  </form>
                 </div>
               </div>
             </div>
@@ -948,6 +976,70 @@ export default function Home() {
             <div className="mt-6 p-4 bg-purple-500/10 border border-purple-400/30 rounded-lg">
               <p className="text-sm text-purple-200 leading-relaxed">
                 💡 These are the exact text chunks that were retrieved from your documents and used to generate the AI response.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Captions Modal */}
+      {showCaptions && (
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+          onClick={() => setShowCaptions(false)}
+        >
+          <div
+            className="bg-gradient-to-br from-slate-900 to-purple-900 border border-purple-400/30 rounded-2xl p-6 max-w-4xl w-full max-h-[85vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h3 className="text-2xl font-bold text-white flex items-center gap-2">
+                <MessageSquare className="w-6 h-6 text-purple-400" />
+                Conversation Transcript
+              </h3>
+              <button
+                onClick={() => setShowCaptions(false)}
+                className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+              >
+                <X className="w-6 h-6 text-white" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {messages.map((msg, idx) => (
+                <div
+                  key={msg.id}
+                  className="bg-white/5 border border-white/10 rounded-xl p-5"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className={`flex-shrink-0 w-10 h-10 rounded-lg flex items-center justify-center ${
+                      msg.role === 'user'
+                        ? 'bg-gradient-to-br from-blue-500 to-cyan-500'
+                        : 'bg-gradient-to-br from-purple-500 to-pink-500'
+                    }`}>
+                      {msg.role === 'user' ? <MessageCircle className="w-5 h-5 text-white" /> : <User className="w-5 h-5 text-white" />}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h4 className="text-white font-semibold">
+                          {msg.role === 'user' ? 'You' : 'Assistant'}
+                        </h4>
+                        <span className="text-xs text-purple-300">
+                          Message {idx + 1}
+                        </span>
+                      </div>
+                      <p className="text-purple-100 leading-relaxed whitespace-pre-wrap">
+                        {msg.content}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-6 p-4 bg-purple-500/10 border border-purple-400/30 rounded-lg">
+              <p className="text-sm text-purple-200 leading-relaxed">
+                💡 This is a text transcript of your voice conversation with the assistant.
               </p>
             </div>
           </div>
