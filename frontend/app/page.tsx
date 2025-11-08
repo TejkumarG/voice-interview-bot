@@ -64,6 +64,13 @@ export default function Home() {
       mermaidRef.current.removeAttribute('data-processed');
       mermaid.contentLoaded();
     }
+
+    // Stop any speech when switching tabs
+    if (activeTab !== 'interview' && synthRef.current) {
+      synthRef.current.cancel();
+      setIsSpeaking(false);
+      setIsPaused(false);
+    }
   }, [activeTab]);
 
   const loadDocuments = async () => {
@@ -107,6 +114,8 @@ export default function Home() {
   };
 
   const speakText = (text: string) => {
+    // ONLY speak in Interview Mode
+    if (activeTab !== 'interview') return;
     if (!synthRef.current) return;
 
     // Stop any ongoing speech
@@ -193,6 +202,14 @@ export default function Home() {
 
     const isInterviewMode = activeTab === 'interview';
     const docToUse = isInterviewMode ? undefined : selectedDocId ?? undefined;
+
+    // Debug logging
+    console.log('🔍 Sending message:', {
+      mode: isInterviewMode ? 'Interview' : 'Playground',
+      selectedDocId: selectedDocId,
+      docToUse: docToUse,
+      message: messageText
+    });
 
     const userMessage: Message = {
       id: Date.now().toString(),
